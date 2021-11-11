@@ -1,0 +1,243 @@
+<head></head>
+<body id="top">
+
+<div>
+    <button id='Code Dx' onclick="codedx()">Add Code Dx</button>
+    <button id='Coverity' onclick="coverity()">Add Coverity</button>
+    <button id='Black Duck' onclick="blackduck()">Add Black Duck</button>
+    <button id='Polaris' onclick="polaris()">Add Polaris</button>
+    <button id='Seeker' onclick="seeker()">Add Seeker</button>
+    <button id='Add User' onclick="adduser()">Add User</button>
+</div>
+
+<div id="variable container">
+
+</div>
+
+<div>
+    <button id='Create Users' onclick="createusers()">Create Users</button>
+</div>
+
+<script>
+    var codedxnum = 1;
+    function codedx() {
+        const cdxform = document.createElement("form");
+        cdxform.id = 'Code Dx ' + codedxnum;
+        codedxnum = codedxnum + 1;
+        cdxform.formtype = 'Code Dx';
+
+        urlinput = document.createElement("input");
+        userinput = document.createElement("input");
+        passwordinput = document.createElement("input");
+        urlinput.placeholder = "Code Dx instance url";
+        userinput.placeholder = "Code Dx admin user name";
+        passwordinput.placeholder = "Code Dx personal access token";
+
+        removecdx = document.createElement("input");
+        removecdx.type = "button";
+        removecdx.value = "Delete";
+        removecdx.addEventListener('click', function(){
+            cdxform.remove();
+        });
+
+        cdxform.appendChild(urlinput);
+        cdxform.appendChild(userinput);
+        cdxform.appendChild(passwordinput);
+
+        cdxform.appendChild(removecdx);
+
+        document.getElementById("variable container").appendChild(cdxform);
+    }
+
+    var coveritynum = 1;
+    function coverity() {
+        const coverityform = document.createElement("form");
+        coverityform.id = 'Coverity ' + coveritynum;
+        coveritynum = coveritynum + 1;
+        coverityform.formtype = 'Coverity';
+
+        urlinput = document.createElement("input");
+        userinput = document.createElement("input");
+        passwordinput = document.createElement("input");
+        urlinput.placeholder = "Coverity instance url";
+        userinput.placeholder = "Coverity admin user name";
+        passwordinput.placeholder = "Coverity admin password";
+
+        removecoverity = document.createElement("input");
+        removecoverity.type = "button";
+        removecoverity.value = "Delete";
+        removecoverity.addEventListener('click', function(){
+            coverityform.remove();
+        });
+
+        coverityform.appendChild(urlinput);
+        coverityform.appendChild(userinput);
+        coverityform.appendChild(passwordinput);
+
+        coverityform.appendChild(removecoverity);
+
+        document.getElementById("variable container").appendChild(coverityform);
+    }
+
+    var blackducknum = 1;
+    function blackduck() {
+        const blackduckform = document.createElement("form");
+        blackduckform.id = 'Black Duck ' + blackducknum;
+        blackducknum = blackducknum + 1;
+        blackduckform.formtype = 'Black Duck';
+
+        urlinput = document.createElement("input");
+        userinput = document.createElement("input");
+        passwordinput = document.createElement("input");
+        urlinput.placeholder = "Black Duck instance url";
+        userinput.placeholder = "Black Duck admin user name";
+        passwordinput.placeholder = "Black Duck access token";
+
+        removeblackduck = document.createElement("input");
+        removeblackduck.type = "button";
+        removeblackduck.value = "Delete";
+        removeblackduck.addEventListener('click', function(){
+            blackduckform.remove();
+        });
+
+        blackduckform.appendChild(urlinput);
+        blackduckform.appendChild(userinput);
+        blackduckform.appendChild(passwordinput);
+
+        blackduckform.appendChild(removeblackduck);
+
+        document.getElementById("variable container").appendChild(blackduckform);
+    }
+
+    var polarisnum = 1;
+    function polaris() {
+        const polarisform = document.createElement("form");
+        polarisform.id = 'Polaris ' + polarisnum;
+        polarisnum = polarisnum + 1;
+        polarisform.formtype = 'Polaris';
+
+        urlinput = document.createElement("input");
+        userinput = document.createElement("input");
+        passwordinput = document.createElement("input");
+        urlinput.placeholder = "Polaris instance url";
+        userinput.placeholder = "Polaris admin user name";
+        passwordinput.placeholder = "Polaris admin password";
+
+        removepolaris = document.createElement("input");
+        removepolaris.type = "button";
+        removepolaris.value = "Delete";
+        removepolaris.addEventListener('click', function(){
+            polarisform.remove();
+        });
+
+        polarisform.appendChild(urlinput);
+        polarisform.appendChild(userinput);
+        polarisform.appendChild(passwordinput);
+
+        polarisform.appendChild(removepolaris);
+
+        document.getElementById("variable container").appendChild(polarisform);
+    }
+
+    var seekernum = 1;
+    function seeker() {
+        const seekerform = document.createElement("form");
+        seekerform.id = 'Seeker ' + seekernum;
+        seekernum = seekernum + 1;
+        seekerform.formtype = 'Seeker';
+
+        urlinput = document.createElement("input");
+        userinput = document.createElement("input");
+        passwordinput = document.createElement("input");
+        urlinput.placeholder = "Seeker instance url";
+        userinput.placeholder = "Seeker admin user name";
+        passwordinput.placeholder = "Seeker access token";
+
+        removeseeker = document.createElement("input");
+        removeseeker.type = "button";
+        removeseeker.value = "Delete";
+        removeseeker.addEventListener('click', function(){
+            seekerform.remove();
+        });
+
+        seekerform.appendChild(urlinput);
+        seekerform.appendChild(userinput);
+        seekerform.appendChild(passwordinput);
+
+        seekerform.appendChild(removeseeker);
+
+        document.getElementById("variable container").appendChild(seekerform);
+    }
+
+    function createusers() {
+        forms = document.getElementsByTagName("form")
+        let databundle = {'forms': []};
+        for (let i = 0; i < forms.length; i++) {
+            if (forms[i].formtype == 'User') {
+                var first = forms[i]['0'].value;
+                var last = forms[i]['1'].value;
+                var email = forms[i]['2'].value;
+                console.log(first, last, email);
+                databundle.forms.push({
+                'formtype': forms[i].formtype,
+                'first': first,
+                'last': last,
+                'email': email});
+            }
+            else {
+                var url = forms[i]['0'].value;
+                var user = forms[i]['1'].value;
+                var token = forms[i]['2'].value;
+                console.log(url, user, token);
+                databundle.forms.push({
+                'formtype': forms[i].formtype,
+                'url': url,
+                'user': user,
+                'token': token});
+            }
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                alert(xhr.response);
+            }
+        }
+        xhr.open("POST", "/", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(databundle));
+    }
+
+    var usernum = 1;
+    function adduser() {
+        const userform = document.createElement("form");
+        userform.id = 'User ' + usernum;
+        usernum = usernum + 1;
+        userform.formtype = 'User';
+
+        firstnameinput = document.createElement("input");
+        lastnameinput = document.createElement("input");
+        emailinput = document.createElement("input");
+        firstnameinput.placeholder = "User first name";
+        lastnameinput.placeholder = "User last name";
+        emailinput.placeholder = "User email address";
+
+        removeuser = document.createElement("input");
+        removeuser.type = "button";
+        removeuser.value = "Delete";
+        removeuser.addEventListener('click', function(){
+            userform.remove();
+        });
+
+
+        userform.appendChild(firstnameinput);
+        userform.appendChild(lastnameinput);
+        userform.appendChild(emailinput);
+
+        userform.appendChild(removeuser);
+
+        document.getElementById("variable container").appendChild(userform);
+    }
+
+</script>
+
+</body>
