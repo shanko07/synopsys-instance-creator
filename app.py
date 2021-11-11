@@ -237,7 +237,10 @@ def create_seeker_users(users, instances):
         user_info[instance['url']] = []
 
         for user in users:
-            headers = {'Authorization': 'Bearer ' + instance['token'],
+            auth_string = instance['token']
+            if not auth_string.startswith('Bearer '):
+                auth_string = 'Bearer ' + auth_string
+            headers = {'Authorization': auth_string,
                        'Content-Type': 'application/x-www-form-urlencoded',
                        'Accept': 'application/json'}
             payload = {
