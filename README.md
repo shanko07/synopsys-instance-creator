@@ -6,6 +6,7 @@
 4. Open [the site](http://localhost:5000)
 
 ![UI](./ui.png)
+
 To use the utility you simply "Add" whichever Synopsys servers you'd like to add users to with the accompanying admin
 credentials on those servers. Then you "Add" the users. The utility will automatically generate passwords, create the
 users as admins, and save the necessary information in `creds.txt`.
