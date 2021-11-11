@@ -13,3 +13,5 @@ users as admins, and save the necessary information in `creds.txt`.
 
 :warning: The contents of `creds.txt` are plaintext usernames and passwords for admin users. They are never transmitted
 over the network, but please be careful with this file. :warning:
+
+ℹ️ Polaris support has not yet been added.  All the piping is there, but the API calls need to be implemented and the UI messages possibly slightly adjusted ℹ️
