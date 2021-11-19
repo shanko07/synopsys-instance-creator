@@ -1,3 +1,10 @@
+# Prereqs
+
+- All instances must be provisioned and licensed
+- Admin level access tokens must be generated for all instances except coverity
+- Coverity instances require admin username and password
+- User names and emails must be collected manually or using the downloadable template
+
 # How To
 
 1. `git clone https://github.com/shanko07/synopsys-instance-creator.git`
@@ -8,10 +15,8 @@
 ![UI](./ui.png)
 
 To use the utility you simply "Add" whichever Synopsys servers you'd like to add users to with the accompanying admin
-credentials on those servers. Then you "Add" the users. The utility will automatically generate passwords, create the
-users as admins, and save the necessary information in `creds.txt`.
+credentials on those servers. Then you "Add" the users.  You can also add users by downloading the template and filling in the necessary information and uploading back using the "Browse" button.  The utility will automatically generate passwords, create the
+users as admins, and prompt you to download an excel sheet named `Credentials.xlsx`
 
-:warning: The contents of `creds.txt` are plaintext usernames and passwords for admin users. They are never transmitted
-over the network, but please be careful with this file. :warning:
-
-ℹ️ Polaris support has not yet been added.  All the piping is there, but the API calls need to be implemented and the UI messages possibly slightly adjusted ℹ️
+:warning: The contents of `Credentials.xlsx` are plaintext usernames and passwords for admin users. Please be careful
+with this file. :warning:
