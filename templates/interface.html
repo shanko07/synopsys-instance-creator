@@ -1,4 +1,6 @@
-<head></head>
+<head>
+    <link href="/static/fontawesome-free-5.15.4-web/css/all.css" rel="stylesheet"> <!--load all styles -->
+</head>
 <body id="top">
 
 <div>
@@ -8,6 +10,12 @@
     <button id='Polaris' onclick="polaris()">Add Polaris</button>
     <button id='Seeker' onclick="seeker()">Add Seeker</button>
     <button id='Add User' onclick="adduser()">Add User</button>
+    <!--<button id='Excel Template'><a href="file/excel_template.xlsx" download="excel_template.xlsx">Download Template</a></button>-->
+    <!--<button id="Excel Template" onclick="dlfcn()">Download Template</button>-->
+    <a href="file/excel_template.xlsx" download="excel_template.xlsx"><button id='Excel Template'>Download Template <i class="fas fa-file-excel"></i></button></a>
+
+    <input type="file" id="input">
+
 </div>
 
 <div id="variable container">
@@ -19,6 +27,95 @@
 </div>
 
 <script>
+
+    const inputElement = document.getElementById("input");
+    inputElement.addEventListener("change", handleFiles, false);
+    function handleFiles() {
+        const fileList = this.files; /* now you can work with the file list */
+        file = this.files[0];
+
+
+        // encode the file using the FileReader API
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          // use a regex to remove data url part
+          const base64String = reader.result
+            .replace("data:", "")
+            .replace(/^.+,/, "");
+
+          // log to console
+          // logs wL2dvYWwgbW9yZ...
+          //console.log(base64String);
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    //alert(xhr.response);
+                    people = JSON.parse(xhr.response);
+                    people = people['data'];
+                    //console.log(xhr.response);
+                    //console.log(people);
+                    for (i = 0; i < people.length; i++) {
+                        person = people[i];
+                        adduser1(person['first'], person['last'], person['email']);
+                    }
+                }
+            }
+            xhr.open("POST", "/users", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            let databundle = {'file': base64String};
+            xhr.send(JSON.stringify(databundle));
+
+
+        };
+
+        reader.readAsDataURL(file);
+
+
+    }
+
+    function adduser1(f, l, e) {
+        const userform = document.createElement("form");
+        userform.id = 'User ' + usernum;
+        usernum = usernum + 1;
+        userform.formtype = 'User';
+
+        firstnameinput = document.createElement("input");
+        lastnameinput = document.createElement("input");
+        emailinput = document.createElement("input");
+        firstnameinput.placeholder = "User first name";
+        lastnameinput.placeholder = "User last name";
+        emailinput.placeholder = "User email address";
+
+        firstnameinput.value = f;
+        lastnameinput.value = l;
+        emailinput.value = e;
+
+        removeuser = document.createElement("input");
+        removeuser.type = "button";
+        removeuser.value = "Delete";
+        removeuser.addEventListener('click', function(){
+            userform.remove();
+        });
+
+
+        userform.appendChild(firstnameinput);
+        userform.appendChild(lastnameinput);
+        userform.appendChild(emailinput);
+
+        userform.appendChild(removeuser);
+
+        document.getElementById("variable container").appendChild(userform);
+    }
+
+
+    function dlfcn() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/file/excel_template.xlsx", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send();
+    }
+
     var codedxnum = 1;
     function codedx() {
         const cdxform = document.createElement("form");
@@ -121,7 +218,7 @@
         passwordinput = document.createElement("input");
         urlinput.placeholder = "Polaris instance url";
         userinput.placeholder = "Polaris admin user name";
-        passwordinput.placeholder = "Polaris admin password";
+        passwordinput.placeholder = "Polaris access token";
 
         removepolaris = document.createElement("input");
         removepolaris.type = "button";
@@ -177,7 +274,7 @@
                 var first = forms[i]['0'].value;
                 var last = forms[i]['1'].value;
                 var email = forms[i]['2'].value;
-                console.log(first, last, email);
+                //console.log(first, last, email);
                 databundle.forms.push({
                 'formtype': forms[i].formtype,
                 'first': first,
@@ -188,7 +285,7 @@
                 var url = forms[i]['0'].value;
                 var user = forms[i]['1'].value;
                 var token = forms[i]['2'].value;
-                console.log(url, user, token);
+                //console.log(url, user, token);
                 databundle.forms.push({
                 'formtype': forms[i].formtype,
                 'url': url,
@@ -199,12 +296,41 @@
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
-                alert(xhr.response);
+                if (xhr.status == 200) {
+                    //download('creds.json', JSON.stringify(operation['creds'], null, 2));
+
+                    var a = window.document.createElement('a');
+                    a.href = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + encodeURIComponent(xhr.response);
+
+                    // supply your own fileName here...
+                    a.download = "Credentials.xlsx";
+
+                    document.body.appendChild(a)
+                    a.click();
+                    document.body.removeChild(a)
+                }
+                else {
+                    alert(xhr.response);
+                }
             }
         }
         xhr.open("POST", "/", true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify(databundle));
+
+
+        function download(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+        }
     }
 
     var usernum = 1;

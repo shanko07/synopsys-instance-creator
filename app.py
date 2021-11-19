@@ -1,12 +1,37 @@
+import base64
+import io
 import json
 import secrets
 import string
 import urllib
 
+import pandas as pd
 import requests
-from flask import Flask, Response, render_template, request
+from flask import Flask, Response, render_template, request, send_from_directory
 
 app = Flask(__name__)
+
+
+# pd.DataFrame(columns=['first', 'last', 'email']).to_excel('excel_template.xlsx', index=False)
+
+@app.route('/file/<filename>', methods=['GET'])
+def return_file(filename):
+    return send_from_directory(directory='./', path=filename)
+
+
+@app.route('/users', methods=['POST'])
+def receive_users():
+    payload = request.json
+    excel_file = base64.b64decode(payload['file'])
+    df = pd.read_excel(excel_file)
+    firstnames = df['first'].tolist()
+    lastnames = df['last'].tolist()
+    emails = df['email'].tolist()
+    peeps = []
+    for f, l, e in zip(firstnames, lastnames, emails):
+        peeps.append({'first': f, 'last': l, 'email': e, 'formtype': 'User'})
+
+    return Response(status=200, response=json.dumps({"status": "success", "data": peeps}))
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -15,21 +40,39 @@ def root():
         return render_template('interface.html')
     else:
         stuff = json.loads(request.data)
-        print(stuff)
-
-        for form in stuff['forms']:
-            print(form)
 
         users = [form for form in stuff['forms'] if form['formtype'] == 'User']
         instances = [form for form in stuff['forms'] if form['formtype'] != 'User']
 
         users = process_users(users)
-        error_data = process_instances(users, instances)
+        error_data, cred_data = process_instances(users, instances)
+        bytes = create_spreadsheet(cred_data)
 
         if len(error_data) == 0:
-            return Response(status=200, response=json.dumps({"status": "success"}))
+            # return Response(status=200, response=json.dumps({"status": "success", "creds": cred_data, "file": base64.b64encode(bytes)}))
+            return Response(status=200, response=base64.b64encode(bytes), headers={
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
         else:
             return Response(status=400, response=json.dumps({"status": "error", "details": error_data}))
+
+
+def create_spreadsheet(cred_data):
+    df = pd.DataFrame(columns=['first', 'last', 'email', 'username', 'password'])
+    for product in cred_data:
+        if product is not None:
+            # has at least one instance
+            if len(product.keys()) > 0:
+                users = product[list(product.keys())[0]]
+                df = df.append(users)
+                break
+
+    buffer = io.BytesIO()
+    df.to_excel(buffer, index=False, header=True)
+
+    buffer.seek(0)
+    # assume bytes_io is a `BytesIO` object
+    byte_str = buffer.read()
+    return byte_str
 
 
 def generate_password():
@@ -85,7 +128,7 @@ def process_instances(users, instances):
         file.write(json.dumps(cdxinfo, indent=2))
         file.write(json.dumps(polinfo, indent=2))
 
-    return errordata
+    return errordata, [bdinfo, seekerinfo, covinfo, cdxinfo, polinfo]
 
 
 def create_blackduck_users(users, instances):
@@ -184,10 +227,84 @@ def create_cov_users(users, instances):
 
 
 def create_polaris_users(users, instances):
-    if len(instances) > 0:
-        return None
-    else:
-        return {}
+    user_info = {}
+
+    for instance in instances:
+        user_info[instance['url']] = []
+
+        for user in users:
+            my_url = urllib.parse.urljoin(instance['url'], '/api/auth/v1/authenticate')
+            auth_response = requests.post(my_url,
+                                          data={'accesstoken': instance['token']})
+            jwt = auth_response.json()['jwt']
+
+            my_url = urllib.parse.urljoin(instance['url'], '/api/auth/v1/organizations')
+            org_response = requests.get(my_url, headers={'Authorization': 'Bearer ' + jwt})
+            org_id = org_response.json()['data'][0]['id']
+
+            payload = {
+                "data": {
+                    "type": "users",
+                    "attributes": {
+                        "email": user['email'],
+                        "enabled": True,
+                        "first-time": True,
+                        "name": user['first'] + ' ' + user['last'],
+                        "owner": True,
+                        "password-login": {
+                            "password": user['password']
+                        },
+                        "system": False,
+                        "username": user['first'] + '_' + user['last'],
+                        "organization-admin": True
+                    },
+                    "relationships": {
+                        "organization": {
+                            "data": {
+                                "type": "organizations",
+                                "id": org_id
+                            }
+                        }
+                    }
+                }
+            }
+
+            my_url = urllib.parse.urljoin(instance['url'], '/api/auth/v1/users')
+            user_response = requests.post(my_url, headers={'Authorization': 'Bearer ' + jwt,
+                                                           'Content-Type': 'application/vnd.api+json'}, json=payload)
+            if user_response.status_code == 201:
+                user_info[instance['url']].append({'first': user['first'], 'last': user['last'], 'email': user['email'],
+                                                   'username': payload['data']['attributes']['username'],
+                                                   'password': user['password']})
+            else:
+                return None
+
+            ra_link = user_response.json()['data']['relationships']['roleassignments']['links']['self']
+            user_id = user_response.json()['data']['id']
+
+            ra_response = requests.get(ra_link, headers={'Authorization': 'Bearer ' + jwt})
+            role_assignment_id = ra_response.json()['data'][0]['id']
+
+            my_url = urllib.parse.urljoin(instance['url'], '/api/auth/v1/roles')
+            roles_response = requests.get(my_url, headers={'Authorization': 'Bearer ' + jwt})
+            for role in roles_response.json()['data']:
+                if role['attributes']['rolename'] == 'Administrator':
+                    role_id = role['id']
+
+            payload = {"data": {"id": role_assignment_id,
+                                "attributes": {"expires-by": None, "object": f"urn:x-swip:organizations:{org_id}"},
+                                "relationships": {"role": {"data": {"type": "roles", "id": role_id}},
+                                                  "user": {"data": {"type": "users", "id": user_id}},
+                                                  "group": {"data": None}, "organization": {
+                                        "data": {"type": "organizations", "id": org_id}}},
+                                "type": "role-assignments"}}
+
+            my_url = urllib.parse.urljoin(instance['url'], '/api/auth/v1/role-assignments')
+            requests.patch(my_url + f'/{role_assignment_id}',
+                           headers={'Authorization': 'Bearer ' + jwt, 'Content-Type': 'application/vnd.api+json'},
+                           json=payload)
+
+    return user_info
 
 
 def create_codedx_users(users, instances):
