@@ -363,7 +363,7 @@ def create_seeker_users(users, instances):
             payload = {
                 'username': user['first'] + '_' + user['last'],
                 'password': user['password'],
-                'globalRoles': 'Demo,DevSecOps,SysAdmin',
+                'globalRoles': 'DevSecOps,SysAdmin',
                 'groupNames': 'everyone'
             }
             rsp = requests.post(urllib.parse.urljoin(instance['url'], '/rest/api/latest/users'), headers=headers,
