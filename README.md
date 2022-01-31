@@ -4,6 +4,7 @@
 - Admin level access tokens must be generated for all instances except coverity
 - Coverity instances require admin username and password
 - User names and emails must be collected manually or using the downloadable template
+- Wherever you run this app from, must be able to communicate with any instances you are trying to create credentials for
 
 # How To
 
